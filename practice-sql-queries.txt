@@ -1,0 +1,191 @@
+1) Query list of city names that do not start with vowels and do not end with vowels.
+
+```sql
+Drop table IF exists #cities
+Create table #cities (id int, city varchar(50))
+
+Insert into #cities
+Values
+(1,'New Delhi'),
+(2,'Amristsar'),
+(3,'London'),
+(4,'Mumbai'),
+(5,'Pune'),
+(6,'Indore'),
+(7,'Ahmedabad'),
+(8,'Berlin'),
+(9,'Agra')
+
+Select * from #cities
+
+Select city
+From #cities
+Where Left(city,1) NOT IN ('a','e','i','o','u') and Right(city,1) NOT IN ('a','e','i','o','u')
+```
+
+2) Query an alphabetically ordered list of all names,
+
+immediately followed by the first letter of each profession enclosed in paranthesis.
+
+```sql
+Drop table IF exists #profession
+Create table #profession (name VARCHAR(50), occupation varchar(50))
+
+Insert into #profession
+Values
+('Jake','Doctor'),
+('Alan','Actor'),
+('Charlie','Singer'),
+('Dwight','SalesPerson')
+
+Select * From #profession
+
+Select CONCAT(name, ' (', LEFT(occupation,1), ')')
+From #profession
+Order by name
+```
+
+3) Query the number of occurences of each occupation. Sort in ascending order & output them in the format:-
+
+There are a total of [occupation.count] [occupation.name]s
+
+```sql
+Drop table IF exists #profession
+
+Create table #profession (name VARCHAR(50), occupation varchar(50))
+
+Insert into #profession
+Values
+('Jake','Doctor'),
+('Alan','Actor'),
+('Charlie','Singer'),
+('Dwight','SalesPerson'),
+('Ross','Actor'),
+('Rachel','Actor'),
+('Chandler','Singer'),
+('Monica','Doctor')
+
+Select * From #profession
+
+Select Concat('There are a total of ',Count(occupation),' ',occupation,'s')
+From #profession
+Group By occupation
+Order By Count(occupation) ASC
+```
+
+4) Query name of students scored higher than 75 marks. Order your output by last three characters of each name.
+
+If two or more students have names ending in the same last three characters then sort by Id.
+
+```sql
+Drop table IF exists #students
+Create table #students (id int, name VARCHAR(50), marks int)
+
+Insert into #students
+Values
+(1,'Alia',80),
+(2,'Natasha',76),
+(3, 'Kavya',90),
+(4,'Navya',79),
+(5,'Natalia',85),
+(6,'Rachel',65)
+
+Select * From #students
+
+Select name ,Right(name,3)
+From #students
+Where marks > 75
+Order by Right(name,3)
+
+-- Some more queries related to office table
+CREATE TABLE office(
+id int,
+name NVARCHAR(50),
+department NVARCHAR(50),
+salary int
+)
+
+INSERT INTO office
+VALUES
+(1,'Michael Scott','Management',100000),
+(2,'Jan Levinson','Management',150000),
+(3,'David Wallace','Management',200000),
+(4,'Dwight Schrute','Sales',85000),
+(5,'Jim Halpert','Sales',80000),
+(6,'Stanley Hudson',NULL,75000),
+(7,'Phyllis Lapin',NULL,70000),
+(8,'Andy Bernard','Sales',72000),
+(9,'Angela Martin','Accounting',68000),
+(10,'Kevin Malone',NULL,62000)
+
+SELECT * FROM office
+```
+
+5) Find Nth highest salary
+
+```sql
+Select Top 1 salary as ThirdHighestSalary
+From (
+Select Top 3 salary
+From office
+Order by Salary Desc
+) as sub
+ORDER BY salary
+```
+
+6) Fetch employee name and corresponding Manager name from office table
+
+hint - self join
+
+```sql
+Select e1.name,e2.name
+From office e1
+JOIN office e2
+ON e1.ManagerId = e2.id
+```
+
+7) Increase salary of employees by 5%
+
+```sql
+Update office
+set salary = Cast((salary + ((5.0/100.0) * salary)) as int)
+
+Select * from office
+```
+
+8) Find name of employee starting with 'A'
+
+```sql
+Select name
+From office
+Where name LIKE 'A%'
+```
+
+9) Seperate first name and last name from the full name column
+
+```sql
+Select name, SUBSTRING(name,0,CHARINDEX(' ',name)) as first_name, SUBSTRING(name,CHARINDEX(' ',name),LEN(name)) as last_name
+From office
+```
+
+10) Create a copy of table office named employees
+
+Detect duplicate employees
+
+```sql
+Select * Into employees From office
+
+select * From employees
+
+-- Creating duplicates for further querying
+-- Insert into employees
+-- Values
+-- (1,'Michael Scott','Management',10500,3),
+-- (5,'Jim Halpert','Sales',84000,1),
+-- (10,'Kevin Malone','Accounting',60500,2)
+
+With duplicates as
+(Select name,department, ROW_NUMBER() OVER(PARTITION BY name order by id) as duplicatecount
+From employees)
+Select * from duplicates where duplicatecount > 1
+```
